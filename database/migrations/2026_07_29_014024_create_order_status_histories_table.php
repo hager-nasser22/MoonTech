@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('previous_status');
+            $table->string('previous_status')->nullable();
             $table->string('new_status');
             $table->timestamps();
         });
