@@ -12,7 +12,6 @@ class ApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    // 1. اختبار عرض المنتجات (Public)
     public function test_can_fetch_products_list()
     {
         Product::create([
@@ -27,10 +26,8 @@ class ApiTest extends TestCase
             ->assertJsonStructure(['data']);
     }
 
-    // 2. اختبار منع غير الأدمن من إضافة منتج
     public function test_non_admin_cannot_create_product()
     {
-        // إنشاء مستخدم عادي برقم تليفون بدون email
         $user = User::create([
             'name'     => 'Regular User',
             'phone'    => '01000000000',
