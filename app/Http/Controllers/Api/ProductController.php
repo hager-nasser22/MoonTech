@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Notifications\ProductStockAvailable;
+use Illuminate\Support\Facades\Notification;
 class ProductController extends Controller
 {
     public function index()
@@ -31,7 +33,7 @@ class ProductController extends Controller
         'description' => 'nullable|string',
         'price'       => 'required|numeric|min:0',
         'stock'       => 'required|integer|min:0',
-        'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // حد أقصى 2MB
+        'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', 
     ]);
 
     if ($request->hasFile('image')) {
@@ -46,7 +48,7 @@ class ProductController extends Controller
     ], 201);
 }
 
-    public function update(Request $request, Product $product)
+ public function update(Request $request, Product $product)
 {
     $validated = $request->validate([
         'title'       => 'sometimes|required|string|max:255',
@@ -56,6 +58,8 @@ class ProductController extends Controller
         'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
     ]);
 
+    $oldStock = $product->stock;
+
     if ($request->hasFile('image')) {
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
@@ -64,6 +68,14 @@ class ProductController extends Controller
     }
 
     $product->update($validated);
+
+    if ($oldStock == 0 && $product->stock > 0) {
+        $subscribers = $product->subscribers; 
+
+        if ($subscribers->isNotEmpty()) {
+            Notification::send($subscribers, new ProductStockAvailable($product));
+        }
+    }
 
     return response()->json([
         'message' => 'Product updated successfully',
